@@ -127,7 +127,25 @@ struct slab *slab_create(struct kmem_cache *cache){
 void kmem_cache_destroy(struct kmem_cache *cache)
 {
   // TODO: Implement kmem_cache_destroy (will not be tested)
-  printf("[SLAB] TODO: kmem_cache_destroy is not yet implemented \n");
+  //printf("[SLAB] TODO: kmem_cache_destroy is not yet implemented \n");
+  struct slab *sl;
+  acquire(&cache->lock);
+  
+  while(!list_empty(&cache->partial)){
+    sl = list_first_entry(&cache->partial, struct slab, list);
+    list_del(&sl->list);
+    kfree((void *)sl);
+  }
+
+  while(!list_empty(&cache->full)){
+    sl = list_first_entry(&cache->full, struct slab, list);
+    list_del(&sl->list);
+    kfree((void *)sl);
+  }
+
+  release(&cache->lock);
+  kfree((void *)cache);
+  
 }
 
 void *kmem_cache_alloc(struct kmem_cache *cache)
