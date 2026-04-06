@@ -29,28 +29,28 @@ void print_kmem_cache(struct kmem_cache *cache, void (*slab_obj_printer)(void *)
   acquire(&cache->lock);
   printf("[SLAB] kmem_cache { name: %s, object_size: %u, at: %p, in_cache_obj: %u } \n", cache->name, cache->object_size, (void *)cache, cache->max_obj_cnt);
   // print cache slab
-  printf("[SLAB] [ cache slabs ] \n");
-  printf("[SLAB] [ slab %p ] { freelist: %p, nxt: %p, max_objs: %u } \n", (void *)cache, (void *)cache->freelist, (void *)0, cache->max_obj_cnt);
+  printf("[SLAB]  [ cache slabs ] \n");
+  printf("[SLAB]    [ slab %p ] { freelist: %p, nxt: %p, max_objs: %u } \n", (void *)cache, (void *)cache->freelist, (void *)0, cache->max_obj_cnt);
   char *base = (char *)(cache) + 568;
   void *obj;
   for(int i = 0; i < cache->max_obj_cnt; i++){
     obj = (void *)(base + i * cache->object_size);
 
-    printf("[SLAB]  [ idx %d ] { addr: %p, as_ptr: %p, as_obj: { ", i, (void *)obj, *(void **)obj);
+    printf("[SLAB]      [ idx %d ] { addr: %p, as_ptr: %p, as_obj: { ", i, (void *)obj, *(void **)obj);
     slab_obj_printer(obj);
     printf(" } } \n");
   }
   // print partial slab
   if(!list_empty(&cache->partial)){
     struct slab *sl;
-    printf("[SLAB] [ partial slabs ] \n");
+    printf("[SLAB]  [ partial slabs ] \n");
     list_for_each_entry(sl, &cache->partial, list){
-      printf("[SLAB] [ slab %p ] { freelist: %p, nxt: %p, max_objs: %u } \n", (void *)sl, (void *)sl->freelist, (void *)sl->list.next, sl->max_obj_cnt);
+      printf("[SLAB]    [ slab %p ] { freelist: %p, nxt: %p, max_objs: %u } \n", (void *)sl, (void *)sl->freelist, (void *)sl->list.next, sl->max_obj_cnt);
       base = (char *)(sl) + SLAB_METADATA_SIZE;
       for(int i =0; i < sl->max_obj_cnt; i++){
         obj = (void *)(base + i * cache->object_size);
 
-        printf("[SLAB]  [ idx %d ] { addr: %p, as_ptr: %p, as_obj: { ", i, (void *)obj, *(void **)obj);
+        printf("[SLAB]      [ idx %d ] { addr: %p, as_ptr: %p, as_obj: { ", i, (void *)obj, *(void **)obj);
         slab_obj_printer(obj);
         printf(" } } \n");
       }
