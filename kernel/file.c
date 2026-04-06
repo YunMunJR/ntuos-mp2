@@ -41,13 +41,12 @@ filealloc(void)
 {
   struct file *f;
 
-  
+  acquire(&ftable.lock);
   f = (struct file *)kmem_cache_alloc(file_cache);
   if(f == 0){
     release(&ftable.lock);
     return 0;
   }
-  acquire(&ftable.lock);
   memset(f, 0, sizeof(*f));
   f->ref = 1;
   release(&ftable.lock);
