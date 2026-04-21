@@ -1,12 +1,13 @@
 #pragma once
 
 #include "spinlock.h"
+#include "list.h"
+#define SLAB_METADATA_SIZE 64
+/*struct run {
+   struct run *next;
+};*/
 
-// struct run {
-//   struct run *next;
-// };
-
-/**
+/**acquire(&ftable.lock);
  * struct slab - Represents a slab in the slab allocator.
  * @freelist: Linked list of free objects.
  */
@@ -15,7 +16,10 @@ struct slab {
   //    1. void **
   //    2. struct run *
   // <ptr> freelist;             // Linked list of free objects
-
+  struct list_head list;
+  void** freelist;
+  uint obj_cnt;
+  uint max_obj_cnt;
   // TODO: Design how to link the slabs
   // ...
 
@@ -33,7 +37,11 @@ struct kmem_cache {
   char name[MP2_CACHE_MAX_NAME]; // Cache name (e.g., "file")
   uint object_size;              // Size of a single object
   struct spinlock lock;          // Lock for cache management
-
+  struct list_head full;
+  struct list_head partial;
+  void** freelist;
+  uint obj_cnt;
+  uint max_obj_cnt;
   // TODO: Add slab list(s)
   // <TYPE> full     // Completely allocated slabs (Optional)
   // <TYPE> partial  // Partially allocated or empty slabs
@@ -52,6 +60,8 @@ struct kmem_cache *kmem_cache_create(char *name, uint object_size);
  * kmem_cache_destroy - Destroy a slab cache.
  * @cache: The cache to be destroyed.
  */
+struct slab *slab_create(struct kmem_cache *cache);
+
 void kmem_cache_destroy(struct kmem_cache *cache);
 
 /**
