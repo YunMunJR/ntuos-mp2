@@ -32,7 +32,6 @@ void
 fileinit(void)
 {
   initlock(&ftable.lock, "ftable");
-  file_cache = kmem_cache_create("file", sizeof(struct file));
 }
 
 // Allocate a file structure.
@@ -42,15 +41,15 @@ filealloc(void)
   struct file *f;
 
   acquire(&ftable.lock);
-  f = (struct file *)kmem_cache_alloc(file_cache);
-  if(f == 0){
-    release(&ftable.lock);
-    return 0;
+  for(f = ftable.file; f < ftable.file + NFILE; f++){
+    if(f->ref == 0){
+      f->ref = 1;
+      release(&ftable.lock);
+      return f;
+    }
   }
-  memset(f, 0, sizeof(*f));
-  f->ref = 1;
   release(&ftable.lock);
-  return f;
+  return 0;
 }
 
 // Increment ref count for file f.
@@ -90,8 +89,6 @@ fileclose(struct file *f)
     iput(ff.ip);
     end_op();
   }
-
-  kmem_cache_free(file_cache, f);
 }
 
 // Get metadata about file f.
